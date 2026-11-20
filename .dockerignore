@@ -1,0 +1,6 @@
+__pycache__
+**/__pycache__
+.git
+.env
+state
+.pytest_cache

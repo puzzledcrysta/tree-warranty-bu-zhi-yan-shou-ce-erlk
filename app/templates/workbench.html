@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>补植验收册</title>
+  <link rel="stylesheet" href="/static/theme.css">
+  <link rel="stylesheet" href="/static/grove.css">
+  <script type="module" src="/static/workspace.js"></script>
+</head>
+<body class="grove">
+  <div class="workbench">
+    <aside class="rail">
+      <a class="brand" href="/"><span aria-hidden="true">✦</span><b>补植验收册</b></a>
+      <nav aria-label="业务模块">
+        {% for slug, label in tabs.items() %}<a href="#{{ slug }}" data-module="{{ slug }}">{{ label }}</a>{% endfor %}
+      </nav>
+      <small>园林养护验收员</small>
+    </aside>
+    <div class="desk">
+      <header class="toolbar"><span>街段验收单</span><span class="edition">规则 1.0</span><a class="btn" id="export" hidden>导出证据</a></header>
+      <main>
+        <section class="mast"><div><small class="department">街段验收</small><h1>补植验收册</h1></div><time id="created" class="clock"></time></section>
+        <section class="kpis" aria-label="批次指标"><div class="kpi"><small>有效</small><strong data-count="accepted">—</strong><span>条</span></div>
+<div class="kpi"><small>隔离</small><strong data-count="rejected">—</strong><span>条</span></div>
+<div class="kpi"><small>来源记录</small><strong data-count="input">—</strong><span>条</span></div>
+<div class="kpi"><small>净差</small><strong data-count="delta">—</strong><span>元</span></div>
+<div class="kpi"><small>账差</small><strong data-count="mismatched">—</strong><span>条</span></div>
+        </section>
+        <div class="grid">
+    <article class="panel signal" id="evidence-panel" data-instrument="trees">
+      <div class="panel__head"><h2>单株验收明细</h2><span class="num" id="evidence-key"></span></div>
+      <div class="panel__body" id="signal" aria-live="polite"><p class="empty">选择一条复算记录</p></div>
+    </article>
+
+    <section class="panel results" aria-labelledby="phase">
+      <div class="panel__head"><h2 id="phase">保活核款</h2><span class="num" id="run-id"></span></div>
+      <div id="tools" class="filters" hidden><label>筛选 <input id="filter" type="search" placeholder="街段验收单 / 原因" maxlength="80"></label>
+        <label id="only-differences" hidden><input id="differences" type="checkbox"> 只看差异</label><output id="shown"></output></div>
+      <div class="scroll" id="grid-data"><p class="empty">运行本班样例</p></div>
+      <form id="review" class="panel__body" hidden>
+        <label>复核意见 <textarea id="review-note" maxlength="500" rows="2"></textarea></label>
+        <div class="actions"><label>结论 <select id="decision"><option>确认</option><option>退回</option></select></label>
+        <button class="btn btn--primary" type="submit">提交复核</button></div>
+      </form>
+    </section>
+
+    <section class="panel source" aria-labelledby="input-title">
+      <div class="panel__head"><h2 id="input-title">巡检记录</h2><small>CSV</small></div>
+      <form id="source" class="panel__body">
+        <div class="actions"><button type="submit" class="btn btn--primary">运行保活核款</button>
+        <button type="button" id="sample" class="btn">载入样例</button></div>
+        <details><summary>导入来源与外部账</summary>
+          <label>来源文件 <input id="source-file" type="file" accept=".csv,text/csv"></label>
+          <textarea id="source-csv" aria-label="原始记录 CSV" rows="4"></textarea>
+          <label>外部账 <input id="book-file" type="file" accept=".csv,text/csv"></label>
+          <textarea id="book-csv" aria-label="外部账 CSV" rows="4"></textarea>
+        </details>
+        <output id="notice" role="status"></output>
+      </form>
+    </section></div>
+      </main>
+      <footer class="statusbar"><span id="state" role="status">等待输入</span><a href="/openapi.json">接口</a><span>UTC</span></footer>
+    </div>
+  </div>
+  <script type="application/json" id="settings">{{ {'reasons': reasons, 'tabs': tabs, 'unit': unit, 'key': key}|tojson }}</script>
+</body>
+</html>

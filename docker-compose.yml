@@ -1,0 +1,17 @@
+name: tree-warranty
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:${APP_PORT:-18314}:8000"
+    environment:
+      WORKBENCH_DB: /state/ledger.sqlite3
+    volumes:
+      - ledger:/state
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2)"]
+      interval: 3s
+      timeout: 3s
+      retries: 12
+volumes:
+  ledger:
