@@ -10,11 +10,11 @@
 |---|---|---|---|---|
 | M1 巡检底单 | 检查编码、字段宽度和来源行 | `POST /api/intake` | `app/modules/intake/service.py` | `tests/test_intake.py` |
 | M2 物候字段 | 归一修订、业务键和偏移时间 | `POST /api/contract` | `app/modules/contract/service.py` | `tests/test_contract.py` |
-| M3 异常巡检 | 定位重复、被替代与矛盾来源 | `POST /api/quality` | `app/modules/quality/versions.py` | `tests/test_quality.py` |
+| M3 异常巡检 | 定位重复、被替代与矛盾来源，采信可信原始底单 | `POST /api/quality`、`POST /api/adjudicate/{run_id}` | `app/modules/quality/versions.py` | `tests/test_quality.py`、`tests/test_adjudication.py` |
 | M4 保活核款 | 按规则复算并追溯证据 | `POST /api/domain` | `app/modules/domain/rule.py` | `tests/test_domain.py` |
 | M5 养护台账 | 核对独立清单和各类差异 | `POST /api/reconcile` | `app/modules/reconcile/service.py` | `tests/test_reconcile.py` |
 | M6 验收批次 | 打开历史批次并对原文件复跑 | `POST /api/runs` | `app/modules/runs/service.py` | `tests/test_runs.py` |
-| M7 签收底稿 | 登记复核结论并下载证据 | `POST /api/review/{run_id}` | `app/modules/review/decisions.py` | `tests/test_review.py` |
+| M7 签收底稿 | 登记复核结论、采信裁决与证据 | `POST /api/review/{run_id}` | `app/modules/review/decisions.py` | `tests/test_review.py`、`tests/test_adjudication.py` |
 
 ## 陷阱登记
 
@@ -29,6 +29,7 @@
 | TRAP-08 | 前导零的单号 | shift.csv | `app/modules/contract/service.py` | `tests/test_contract.py::test_leading_zero` |
 | TRAP-11 | 偏移时刻 UTC 归一 | shift.csv | `app/modules/domain/values.py` | `tests/test_contract.py::test_offsets` |
 | TRAP-14 | 同版业务字段冲突 | shift.csv | `app/modules/quality/versions.py` | `tests/test_quality.py::test_conflicting` |
+| TRAP-14b | 冲突底单采信后按可信来源复算，旧裁决随更高修订失效 | shift.csv | `app/modules/review/decisions.py` | `tests/test_adjudication.py` |
 | TRAP-16 | 末行引号截断 | truncated.csv | `app/modules/intake/reader.py` | `tests/test_intake.py::test_truncated_rejected` |
 | TRAP-17 | 旧版列名映射 | legacy.csv | `app/modules/contract/schema.py` | `tests/test_contract.py::test_legacy_aliased` |
 | TRAP-18 | 空文件、空白文件与仅表头 | 测试构造 | `app/modules/intake/service.py` | `tests/test_intake.py::test_empty_states` |

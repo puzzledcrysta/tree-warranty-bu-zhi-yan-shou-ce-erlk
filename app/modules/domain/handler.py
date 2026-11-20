@@ -1,10 +1,11 @@
 from fastapi import APIRouter
 from app.inputs import Source
+from app.modules.review.decisions import decisions
 from app.pipeline import stages
 
 router = APIRouter()
 
 @router.post('/api/domain')
 def recalculate(source: Source):
-    result = stages(source.raw())
+    result = stages(source.raw(),decisions())
     return {key:result[key] for key in ('accepted','rejected','domain_bad')}

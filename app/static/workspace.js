@@ -13,6 +13,7 @@ let selected = Object.hasOwn(settings.tabs, location.hash.slice(1)) ? location.h
 let result = null;
 let inputs = {};
 let reviewVersion = 0;
+let adoptionNote = '';
 let renderEpoch = 0;
 let activeView = null;
 const filter = byId('filter');
@@ -41,6 +42,43 @@ function notice(message, error = false) {
 
 function tag(code) {
   return el('span', settings.reasons[code] || code, code === 'MATCH' ? 'state' : 'state problem');
+}
+
+function adoptControl(row) {
+  // Only a same-revision conflict offers a source to trust; suppressed rows
+  // and business rejections stay read-only.
+  if (row.code !== 'REV_CONFLICT' || !result) return el('span', '—', 'empty');
+  const cell = el('div');
+  const note = el('input');
+  note.type = 'text';
+  note.maxLength = 500;
+  note.placeholder = '复核意见';
+  note.value = adoptionNote;
+  note.addEventListener('input', () => { adoptionNote = note.value; });
+  const button = el('button', '采信此份', 'btn');
+  button.type = 'button';
+  button.addEventListener('click', async () => {
+    if (!note.value.trim()) {
+      notice('采信原始底单须先填写复核意见', true);
+      note.focus();
+      return;
+    }
+    button.disabled = true;
+    try {
+      const reply = await query(`/api/adjudicate/${result.manifest.run_id}`, {
+        key: row.key, revision: row.revision, line: row.line, digest: row.digest, note: note.value,
+      });
+      adoptionNote = '';
+      setRun(reply.report);
+      notice(`已采信第 ${row.line} 行原始底单，复算合格株数已更新`);
+      await render();
+    } catch (error) {
+      notice(error.message, true);
+      await render();
+    } finally { button.disabled = false; }
+  });
+  cell.append(note, button);
+  return cell;
 }
 
 
@@ -108,7 +146,7 @@ async function render() {
       view = [key, [`应付养护款 · ${settings.unit}`, 'amount', 'num'], line, ['明细依据', inspect]];
       rows = result.accepted;
     } else if (stage === 'quality') {
-      view = [key, line, ['判定', row => tag(row.code)], ['说明', 'detail'], ['字段', raw]];
+      view = [key, line, ['判定', row => tag(row.code)], ['说明', 'detail'], ['字段', raw], ['采信', adoptControl]];
       rows = [...result.quarantine, ...result.suppressed].sort((a,b) => a.line-b.line);
     } else if (stage === 'reconcile') {
       view = [key, ['实际', 'amount', 'num'], ['外部账', 'reference', 'num'], ['差值', 'delta', 'num'], ['外部行', 'book_line', 'num'], ['结论', row => tag(row.code)]];
@@ -152,7 +190,8 @@ async function render() {
       rows = runs;
     } else {
       const timeline = await query(`/api/review/${id}`);
-      view = [['版本','version','num'], ['结论','decision'], ['复核意见','note'], ['登记 UTC','changed']];
+      view = [['版本','version','num'], ['结论','decision'], ['对象','key'], ['底单行', row => row.line ? `${row.line} 行 · 修订 ${row.revision}` : '—'],
+              ['复核意见','note'], ['登记 UTC','changed']];
       rows = timeline;
       if (ticket === renderEpoch) {
         reviewVersion = timeline[0]?.version || 0;

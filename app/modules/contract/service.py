@@ -1,8 +1,15 @@
+from hashlib import sha256
+import json
 from app.errors import DataError
 from app.evidence import finding
 from app.settings import KEY, FIELDS
 from app.modules.domain.values import whole, instant
 from .schema import mapping, REQUIRED, MISSING
+
+
+def digest(key, revision, fields):
+    payload = json.dumps([key,revision,[fields[field] for field in FIELDS]],ensure_ascii=False)
+    return sha256(payload.encode()).hexdigest()
 
 
 def normalize(source):
@@ -27,4 +34,5 @@ def normalize(source):
         passed.append({'key':key,'revision':revision,'time':changed,'line':record['line'],
                        'raw':record['raw'],'fields':{field:values[field] for field in FIELDS},
                        'note':values.get('原始备注','')})
+        passed[-1]['digest'] = digest(key,revision,passed[-1]['fields'])
     return passed, rejected

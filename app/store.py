@@ -11,9 +11,22 @@ CREATE TABLE IF NOT EXISTS runs (
 CREATE TABLE IF NOT EXISTS reviews (
   run_id TEXT NOT NULL REFERENCES runs(id), version INTEGER NOT NULL,
   decision TEXT NOT NULL, note TEXT NOT NULL, changed TEXT NOT NULL,
+  kind TEXT NOT NULL DEFAULT '复核', key TEXT, revision INTEGER, line INTEGER, digest TEXT,
   PRIMARY KEY(run_id,version)
 );
 """
+
+# A ledger volume created before adoption support keeps serving: the ruling
+# columns are added in place rather than dropping the reviewer's history.
+ADDED = (('kind',"TEXT NOT NULL DEFAULT '复核'"),('key','TEXT'),('revision','INTEGER'),
+         ('line','INTEGER'),('digest','TEXT'))
+
+
+def _migrate(db):
+    columns = {row['name'] for row in db.execute('PRAGMA table_info(reviews)')}
+    for name,ddl in ADDED:
+        if name not in columns:
+            db.execute(f'ALTER TABLE reviews ADD COLUMN {name} {ddl}')
 
 
 @contextmanager
@@ -25,6 +38,7 @@ def connection():
     try:
         db.execute('PRAGMA foreign_keys = ON')
         db.executescript(SCHEMA)
+        _migrate(db)
         with db:
             yield db
     finally:
